@@ -46,6 +46,7 @@ public class PlanetManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+    // Date = DateTime.Now;
+    // Debug.Log(Date);
     }
 }
