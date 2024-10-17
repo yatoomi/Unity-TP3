@@ -18,9 +18,10 @@ public class PlanetManager : MonoBehaviour
  }
  }
 
+
 [SerializeField]
- private Boolean scale;
- public Boolean Scale
+ private int scale;
+ public int Scale
  {
  get => scale;
  set
@@ -29,8 +30,19 @@ public class PlanetManager : MonoBehaviour
  ScaleChanged(value); //Fire the event
  }
  }
-  public event Action<Boolean> ScaleChange;
- public void ScaleChanged(Boolean s)
+
+ [SerializeField]
+ private Boolean play;
+ public Boolean Play
+ {
+ get => play;
+ set
+ {
+ play = value;
+ }
+ }
+  public event Action<int> ScaleChange;
+ public void ScaleChanged(int s)
  {
  ScaleChange?.Invoke(s);
  }
@@ -52,10 +64,27 @@ public class PlanetManager : MonoBehaviour
  OnTimeChange?.Invoke(newTime);
  }
 
+
+ private int cam;
+ public int Cam
+ {
+ get => cam;
+ set
+ {
+ cam = value;
+ CameraMove(value); //Fire the event
+ }
+ }
+
+ public event Action<int> CameraMoved;
+ public void CameraMove(int c)
+ {
+ CameraMoved?.Invoke(c);
+ }
     // Start is called before the first frame update
     void Start()
     {
-   Date = DateTime.Now;
+   
     }
 
     // Update is called once per frame
