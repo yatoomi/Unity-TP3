@@ -18,7 +18,22 @@ public class PlanetManager : MonoBehaviour
  }
  }
 
-
+[SerializeField]
+ private Boolean scale;
+ public Boolean Scale
+ {
+ get => scale;
+ set
+ {
+ scale = value;
+ ScaleChanged(value); //Fire the event
+ }
+ }
+  public event Action<Boolean> ScaleChange;
+ public void ScaleChanged(Boolean s)
+ {
+ ScaleChange?.Invoke(s);
+ }
  
  [SerializeField]
  private UDateTime date;
@@ -40,13 +55,12 @@ public class PlanetManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-   
+   Date = DateTime.Now;
     }
 
     // Update is called once per frame
     void Update()
     {
-    // Date = DateTime.Now;
-    // Debug.Log(Date);
+    
     }
 }
