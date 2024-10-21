@@ -5,7 +5,8 @@ using UnityEngine;
 
 public class PlanetManager : MonoBehaviour
 {
- public static PlanetManager current;
+    
+ public static PlanetManager current; 
  private void Awake()
  {
  if (current == null)
@@ -17,6 +18,17 @@ public class PlanetManager : MonoBehaviour
  Destroy(obj: this);
  }
  }
+
+  [SerializeField] private Transform target = null;
+
+    public Transform Target //Astre sélectionner 
+     {
+    get => target;
+    set
+     {
+     target = value;
+    }
+    }
 
 
 [SerializeField]
@@ -32,21 +44,43 @@ public class PlanetManager : MonoBehaviour
  }
 
  [SerializeField]
- private Boolean play;
+ private Boolean play; // bascule play
  public Boolean Play
  {
  get => play;
  set
  {
  play = value;
+}
  }
- }
-  public event Action<int> ScaleChange;
+
+[SerializeField]
+ public int playspeed;
+
+ public event Action<int> ScaleChange;
  public void ScaleChanged(int s)
  {
  ScaleChange?.Invoke(s);
  }
  
+
+ [SerializeField]
+ private Boolean traj = true; // bascule trajectoires
+ public Boolean Traj
+ {
+ get => traj;
+ set
+ {
+ traj = value;
+ TrajChanged(value);
+}
+ }
+  public event Action<Boolean> TrajChange;
+ public void TrajChanged(Boolean b)
+ {
+ TrajChange?.Invoke(b);
+ }
+
  [SerializeField]
  private UDateTime date;
  public UDateTime Date
@@ -64,23 +98,6 @@ public class PlanetManager : MonoBehaviour
  OnTimeChange?.Invoke(newTime);
  }
 
-
- private int cam;
- public int Cam
- {
- get => cam;
- set
- {
- cam = value;
- CameraMove(value); //Fire the event
- }
- }
-
- public event Action<int> CameraMoved;
- public void CameraMove(int c)
- {
- CameraMoved?.Invoke(c);
- }
     // Start is called before the first frame update
     void Start()
     {

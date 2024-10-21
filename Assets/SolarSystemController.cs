@@ -12,17 +12,22 @@ public class SolarSystemController : MonoBehaviour
     public List<GameObject> ListPlanetes = new List<GameObject>();
     private static List<float> echelletaille= new List<float> {0.002f, 0.008f, 0.008f, 0.004f, 0.102f, 0.086f, 0.036f, 0.034f} ;
     private static List<float> echelletaille_distance= new List<float> {1.6678e-5f,4.14444e-5f, 8.274182e-5f, 2.27276e-5f, 0.00047694529f, 0.00040374906f, 0.00015742203f, 0.00014873206f} ;
+    private GameObject[]  trajectoires;
+    public Material trajectoryMaterial;
 
-    private static List<int> periode = new List<int> {88, 225, 365, 686, 4182, 9664, 30681, 60181} ;
-    private static List<LineRenderer> trajectoires;
-      void UpdatePosition (UDateTime t) {
-        for (int i = 0; i < ListPlanetes.Count; i++)
+///////////////////////////////////////////////////////////////////////////////////////
+
+
+      void UpdatePosition (UDateTime t) { 
+        for (int i = 0; i < ListPlanetes.Count; i++) //Mise à jour de toute les positions des planètes en fonction du temps t
     {
-     ListPlanetes[i].transform.SetPositionAndRotation(PlanetData.GetPlanetPosition((PlanetData.Planet)i,t) , new Quaternion());
+     ListPlanetes[i].transform.SetPositionAndRotation(PlanetData.GetPlanetPosition((PlanetData.Planet)i,t) , new Quaternion()); //faire le lien entre le transform de la planète i est les données de la planètes i
     }
         }
 
-       public void UpdateScale (int a) {
+///////////////////////////////////////////////////////////////////////////////////////
+
+       public void UpdateScale (int a) { //Mise à jour des échelles suivants les listes crées au dessus et en fonction de l'état de la variable a qui indique l'une des 3 échelles
     if (a==0){
              for (int i = 0; i < ListPlanetes.Count; i++)
     {
@@ -30,13 +35,17 @@ public class SolarSystemController : MonoBehaviour
     }
      transform.GetChild(8).localScale = new Vector3(0.2f,0.2f,0.2f);
     }
+
     if (a==1){
       for (int i = 0; i < ListPlanetes.Count; i++)
     {
-     ListPlanetes[i].transform.localScale = new Vector3(0.1f,0.1f,0.1f);
+     ListPlanetes[i].transform.localScale = new Vector3(0.2f,0.2f,0.2f);
     }
      transform.GetChild(8).localScale = new Vector3(0.2f,0.2f,0.2f);
-    }
+     transform.GetChild(0).localScale = new Vector3(0.1f,0.1f,0.1f);    
+     transform.GetChild(1).localScale = new Vector3(0.15f,0.15f,0.15f);    
+     }
+
     if (a==2){
       for (int i = 0; i < ListPlanetes.Count; i++)
     {
@@ -45,73 +54,99 @@ public class SolarSystemController : MonoBehaviour
      transform.GetChild(8).localScale = new Vector3(0.00464913034f,0.00464913034f,0.00464913034f);
     }
        }
-       
+
+///////////////////////////////////////////////////////////////////////////////////////
+
+
     void Start()
     {
               for (int i = 0; i < transform.childCount-1; i++)
     {
-        GameObject planete = transform.GetChild(i).gameObject;
+        GameObject planete = transform.GetChild(i).gameObject; // Création de la liste de transform de chaque planète (côté unity)
         ListPlanetes.Add(planete);
         Debug.Log("Planète trouvé : " + planete.name);
     }
-    PlanetManager.current.OnTimeChange += UpdatePosition;
+    PlanetManager.current.OnTimeChange += UpdatePosition; //Ajout des abonnements aux différents événements
     PlanetManager.current.ScaleChange += UpdateScale;
-     PlanetManager.current.CameraMoved += ReAxerCamera;
-    UpdateScale(1);
-    // CreationTrajectoire(); 
-    PlanetManager.current.Date = DateTime.Now;
+    PlanetManager.current.TrajChange += ActiverTrajectoire;
+    
+    UpdateScale(1); // Echelle pédagogique
+
+    PlanetManager.current.Date = DateTime.Now; //initialisation des différentes variables
     PlanetManager.current.Play = true;
     PlanetManager.current.Scale = 1;
-    target = transform.GetChild(8);
+    PlanetManager.current.Target = transform.GetChild(8);
     
-    }
 
-      void CreationTrajectoire(){
-            for (int i = 0; i < ListPlanetes.Count; i++){
-            LineRenderer line = null;
-            if (ListPlanetes[i].GetComponent<LineRenderer>()==null){
-            line = ListPlanetes[i].AddComponent<LineRenderer>();
+    trajectoires = new GameObject[Enum.GetValues(typeof(PlanetData.Planet)).Length];  // Création et stockage des trajetoires (pour ne le faire qu'une fois)
+        int index = 0;
+        foreach (PlanetData.Planet p in Enum.GetValues(typeof(PlanetData.Planet)))
+        {
+            GameObject planetObject = GameObject.Find(p.ToString());
+            if (planetObject != null)
+            {
+                GameObject trajectory = CreateTrajectory(p);
+                trajectoires[index] = trajectory;
+                index++;
             }
-            else {
-            line =ListPlanetes[i].GetComponent<LineRenderer>();
-            }
-            trajectoires.Add(line);
-
-            Gradient gradient = new Gradient();
-            gradient.SetKeys(
-              new GradientColorKey[] { new GradientColorKey(Color.red, 0.0f), new GradientColorKey(Color.green, 1.0f) },
-              new GradientAlphaKey[] { new GradientAlphaKey(1.0f, 0.0f), new GradientAlphaKey(0.0f, 1.0f) }
-              );
-            line.colorGradient = gradient;
-            line.startWidth = 0.1f;
-            line.loop = true;
-
-            trajectoires[i].positionCount = periode[i];
-            DateTime t0 = DateTime.Now;
-            Vector3 Pos = PlanetData.GetPlanetPosition((PlanetData.Planet)i,t0);
-                for (int j = 0; j < periode[i]; j++){
-                    trajectoires[i].SetPosition(j, Pos);
-                    t0.AddDays(1);
-                    Pos=PlanetData.GetPlanetPosition((PlanetData.Planet)i,t0);
-                }
-         }
+        }
 
     }
+        
+///////////////////////////////////////////////////////////////////////////////////////
 
-  void ReAxerCamera(int c){
-     Camera.main.transform.LookAt(target);
-     Debug.Log(target);
-  }
+        public GameObject CreateTrajectory(PlanetData.Planet planetType) // Fonction qui crée la trajectoire d'une planète
+    {
+        DateTime startDate = DateTime.Now;
+        GameObject trajectory = new GameObject(planetType.ToString() + "Trajectory");
+        trajectory.transform.SetParent(transform);
+
+        LineRenderer lineRenderer = trajectory.AddComponent<LineRenderer>();
+        lineRenderer.positionCount = 100000; // Nombre de points arbitraire
+        lineRenderer.material = trajectoryMaterial;
+        lineRenderer.startWidth = 0.05f; // Ajuster l'épaisseur de début de la trajectoire
+        lineRenderer.endWidth = 0.05f; // Ajuster l'épaisseur de fin de la trajectoire
+
+        for (int i = 0; i < 100000; i++) // On recupère la position de la planète tout au long de sa révolution 
+        {
+            Vector3 planetPosition = PlanetData.GetPlanetPosition(planetType, startDate.AddDays(1f*i)); 
+            lineRenderer.SetPosition(i, planetPosition); //ajout à la trajectoire
+        }
+
+        return trajectory;
+    }
+        
+///////////////////////////////////////////////////////////////////////////////////////
+
     // Update is called once per frame
     void Update()
     {
-      if (PlanetManager.current.Play==true){
-        PlanetManager.current.Date = PlanetManager.current.Date.dateTime.AddHours(6);
+      if (PlanetManager.current.Play==true){ // uniquement en mode play
+        PlanetManager.current.Date = PlanetManager.current.Date.dateTime.AddHours(PlanetManager.current.playspeed); // on fait s'écouler le temps 
       }
     }
 
+
+///////////////////////////////////////////////////////////////////////////////////////
   
-  
+  void ActiverTrajectoire(Boolean b){
+     if (trajectoires != null)
+        {
+            foreach (GameObject trajectoire in trajectoires)
+            {
+                if (trajectoire != null)
+                {
+                    // Activer ou désactiver les trajectoires en fonction de l'état du bouton bascule
+                    trajectoire.SetActive(b);
+                    Debug.Log(b);
+                }
+             }
     }
+  }
+
+}
+
+
+ 
 
 

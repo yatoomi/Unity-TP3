@@ -8,8 +8,8 @@ using UnityEngine.UIElements;
 
 public class Controler : MonoBehaviour
 {
-Boolean a = true;
-    public GameObject controleur;
+Boolean axesoleil = true;
+    public Transform soleil;
 
     // Start is called before the first frame update
     void Start()
@@ -20,10 +20,9 @@ Boolean a = true;
     // Update is called once per frame
     void Update()
     {
-        
     }
 
-    public void ChangeScale(){
+    public void ChangeScale(){ // Bouton bascule passage de l'echelle pédagogique à l'échelle des planetes reelles
     if (PlanetManager.current.Scale == 0 || PlanetManager.current.Scale == 2 ){
         PlanetManager.current.Scale = 1;
         return;
@@ -34,7 +33,7 @@ Boolean a = true;
         }
       Debug.Log(PlanetManager.current.Scale);
     }
-    public void ChangeScale2(){
+    public void ChangeScale2(){  // Bouton bascule passage de l'echelle pédagogique à l'échelle des planetes et des distances reelles
     if (PlanetManager.current.Scale == 0){
       PlanetManager.current.Scale = 2;
       return;
@@ -50,48 +49,34 @@ Boolean a = true;
     Debug.Log(PlanetManager.current.Scale);
     }
 
- public void ChangeYear(string s){
+ public void ChangeYear(string s){  // Ajout d'année
     Debug.Log(s);
     int e = Int32.Parse(s);
     PlanetManager.current.Date = PlanetManager.current.Date.dateTime.AddYears(e);
 }
- public void ChangeMonth(string m){
+ public void ChangeMonth(string m){ // Ajout de mois
     PlanetManager.current.Date = PlanetManager.current.Date.dateTime.AddMonths(int.Parse(m));
 }
- public void Play(){
+ public void Play(){ // Bascule de la variable play
     PlanetManager.current.Play = ! PlanetManager.current.Play;
 }
-public void VueHelioCentree(){
-    Debug.Log(a);
-    a=!a;
-    if (a == true){
+public void VueHelioCentree(){// Bascule de la vue soleil et recentrage en fonction de l'état de la bascule 
+    axesoleil=!axesoleil;
+    PlanetManager.current.Target = soleil;
+    if (axesoleil == true){
         Camera.main.transform.SetLocalPositionAndRotation(new Vector3(0,0,-17.5f), Quaternion.Euler(0,0,0) );
     }
-   if (a == false){
+   if (axesoleil == false){
         Camera.main.transform.SetLocalPositionAndRotation(new Vector3(0,3f,0), Quaternion.Euler(90,0,0) );
    }
 }
 
-
-public void RotAxe1(Single a){
-    float b = (a)*360;
-    float c = b*Mathf.Deg2Rad;
-    Camera.main.transform.SetLocalPositionAndRotation(new Vector3(17.5f*math.cos(c),Camera.main.transform.position.y,17.5f*math.sin(c)), Quaternion.Euler(0,0,0) );
-    PlanetManager.current.Cam += 1;
+public void Playspeed(Single s){ 
+  PlanetManager.current.playspeed = (int) s;
 }
 
-public void RotAxe2(Single a){
-    float b = (a)*360;
-    float c = b*Mathf.Deg2Rad;
-    Camera.main.transform.SetLocalPositionAndRotation(new Vector3(Camera.main.transform.position.x,17.5f*math.sin(c),17.5f*math.cos(c)), Quaternion.Euler(0,0,0) );
-    PlanetManager.current.Cam += 1;
-}
-
-public void Zoom(Single zoom){
-Camera.main.transform.SetLocalPositionAndRotation(Camera.main.transform.forward*(zoom)*17, Camera.main.transform.rotation);
-PlanetManager.current.Cam += 1;
-}
-public void Trajectory(){
+public void Trajectory(){ //bascule des trajectoires des planètes
+  PlanetManager.current.Traj=!PlanetManager.current.Traj;
 }
 }
 
